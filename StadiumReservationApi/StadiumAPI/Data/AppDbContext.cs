@@ -13,7 +13,8 @@ namespace StadiumReservationApi.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Feature> Features { get; set; }
         public DbSet<StadiumFeature> StadiumFeatures { get; set; }
-        public DbSet<StadiumDetails> StadiumDetails { get; set; }
+        public DbSet<StadiumBookingPolicy> StadiumBookingPolicies { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,9 +40,16 @@ namespace StadiumReservationApi.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Stadium>()
-                .HasOne(s => s.Details)
-                .WithOne(d => d.Stadium)
-                .HasForeignKey<StadiumDetails>(d => d.StadiumId);
+                .HasOne(s => s.BookingPolicy)
+                .WithOne(p => p.Stadium)
+                .HasForeignKey<StadiumBookingPolicy>(p => p.StadiumId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Stadium)
+                .WithMany(s => s.Bookings)
+                .HasForeignKey(b => b.StadiumId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Football" },

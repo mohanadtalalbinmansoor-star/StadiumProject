@@ -35,27 +35,13 @@ namespace StadiumReservationApi.Services
 
         public void AddStadium(Stadium stadium)
         {
-            var details = stadium.Details;
-            stadium.Details = null;
-
             _context.Stadiums.Add(stadium);
             _context.SaveChanges();
-
-            if (details != null)
-            {
-                details.StadiumId = stadium.Id;
-                _context.StadiumDetails.Add(details);
-                _context.SaveChanges();
-
-                stadium.Details = details;
-            }
         }
 
         public void UpdateStadium(Stadium updatedStadium)
         {
-            var stadium = _context.Stadiums
-                .Include(s => s.Details)
-                .FirstOrDefault(s => s.Id == updatedStadium.Id);
+            var stadium = _context.Stadiums.FirstOrDefault(s => s.Id == updatedStadium.Id);
 
             if (stadium != null)
             {
@@ -63,26 +49,7 @@ namespace StadiumReservationApi.Services
                 stadium.Location = updatedStadium.Location;
                 stadium.PricePerHour = updatedStadium.PricePerHour;
                 stadium.CategoryId = updatedStadium.CategoryId;
-
-                if (updatedStadium.Details != null)
-                {
-                    if (stadium.Details == null)
-                    {
-                        stadium.Details = new StadiumDetails
-                        {
-                            LicenseNumber = updatedStadium.Details.LicenseNumber,
-                            Capacity = updatedStadium.Details.Capacity,
-                            GrassType = updatedStadium.Details.GrassType,
-                            StadiumId = stadium.Id
-                        };
-                    }
-                    else
-                    {
-                        stadium.Details.LicenseNumber = updatedStadium.Details.LicenseNumber;
-                        stadium.Details.Capacity = updatedStadium.Details.Capacity;
-                        stadium.Details.GrassType = updatedStadium.Details.GrassType;
-                    }
-                }
+                stadium.IsAvailable = updatedStadium.IsAvailable;
 
                 _context.SaveChanges();
             }

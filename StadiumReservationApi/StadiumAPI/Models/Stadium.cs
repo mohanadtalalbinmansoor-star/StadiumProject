@@ -21,6 +21,10 @@ namespace StadiumReservationApi.Models
         public Category? Category { get; set; }
 
         public ICollection<StadiumFeature> StadiumFeatures { get; set; } = new List<StadiumFeature>();
-        public StadiumDetails? Details { get; set; }
+        // 1:1
+        public StadiumBookingPolicy? BookingPolicy { get; set; }
+
+        // 1:N
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }
