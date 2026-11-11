@@ -1,0 +1,133 @@
+<div style="max-width: 950px; margin: 25px auto; font-family: Segoe UI, Tahoma, sans-serif; direction: ltr;">
+  
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="margin: 0; color: #2c3e50;">Stadiums Management</h2>
+    <span style="background: #e8f4fd; color: #2980b9; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px;">
+      Total Stadiums: {{ stadiums.length }}
+    </span>
+  </div>
+
+  <!-- شريط البحث -->
+  <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+    <input 
+      type="text" 
+      placeholder="Search stadiums by name or city..." 
+      [(ngModel)]="searchKeyword" 
+      style="flex: 1; padding: 9px; border: 1px solid #ccc; border-radius: 4px;" />
+    <button (click)="search()" style="padding: 9px 18px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Search
+    </button>
+    <button (click)="getStadiums()" style="padding: 9px 15px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Show All
+    </button>
+  </div>
+
+  <!-- نموذج الإضافة والتعديل -->
+  <div style="background: #fdfdfd; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+    <h3 style="margin-top: 0; color: #34495e; font-size: 16px;">
+      {{ isEditMode ? 'Edit Stadium Details' : 'Add New Stadium' }}
+    </h3>
+
+    <!-- الصف الأول: البيانات الأساسية -->
+    <div style="display: grid; grid-template-columns: 2fr 2fr 1.5fr 1fr; gap: 10px; margin-bottom: 12px;">
+      <input type="text" placeholder="Stadium Name" [(ngModel)]="currentStadium.name" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <input type="text" placeholder="Location / City" [(ngModel)]="currentStadium.location" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      
+      <select [(ngModel)]="currentStadium.categoryId" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
+        <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+      </select>
+
+      <input type="number" placeholder="Price/hr" [(ngModel)]="currentStadium.pricePerHour" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+    </div>
+
+    <!-- الصف الثاني: تفاصيل الترخيص والمواصفات (علاقة 1:1) -->
+    <div *ngIf="currentStadium.details" style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr; gap: 10px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px dashed #cbd5e1;">
+      <input type="text" placeholder="License Number (e.g. LIC-2026-01)" [(ngModel)]="currentStadium.details.licenseNumber" style="padding: 7px; border: 1px solid #ccc; border-radius: 4px;" />
+      <input type="number" placeholder="Capacity (Seats)" [(ngModel)]="currentStadium.details.capacity" style="padding: 7px; border: 1px solid #ccc; border-radius: 4px;" />
+      <select [(ngModel)]="currentStadium.details.grassType" style="padding: 7px; border: 1px solid #ccc; border-radius: 4px; background: white;">
+        <option value="Natural">Natural Grass</option>
+        <option value="Artificial">Artificial Turf</option>
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button 
+        (click)="saveStadium()" 
+        [disabled]="!currentStadium.name.trim()"
+        style="padding: 9px 22px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        {{ isEditMode ? 'Update Stadium' : 'Save Stadium' }}
+      </button>
+
+      <button 
+        *ngIf="isEditMode" 
+        (click)="cancelEdit()" 
+        style="padding: 9px 18px; background: #7f8c8d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- جدول عرض البيانات -->
+  <table border="1" cellpadding="9" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; text-align: left;">
+    <thead style="background: #2c3e50; color: white;">
+      <tr>
+        <th style="width: 45px;">ID</th>
+        <th>Stadium Name</th>
+        <th>Category</th>
+        <th>Location</th>
+        <th>Price / Hour</th>
+        <th>Status</th>
+        <th style="width: 250px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let s of stadiums">
+        <tr>
+          <td>{{ s.id }}</td>
+          <td><strong>{{ s.name | uppercase }}</strong></td>
+          <td><span style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-size: 13px;">{{ getCategoryName(s.categoryId) }}</span></td>
+          <td>{{ s.location }}</td>
+          <td>{{ s.pricePerHour | currency:'USD' }}</td>
+          <td>
+            <span [ngStyle]="{'color': s.isAvailable ? '#27ae60' : '#e74c3c', 'font-weight': 'bold'}">
+              {{ s.isAvailable ? 'Available' : 'Booked' }}
+            </span>
+          </td>
+          <td>
+            <button (click)="showDetails(s)" style="padding: 5px 8px; background: #16a085; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
+              {{ selectedStadiumDetails?.id === s.id ? 'Hide' : 'Details' }}
+            </button>
+            <button (click)="editStadium(s)" style="padding: 5px 8px; background: #2980b9; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
+              Edit
+            </button>
+            <button (click)="toggleStatus(s.id)" style="padding: 5px 8px; background: #f39c12; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
+              Status
+            </button>
+            <button (click)="deleteStadium(s.id)" style="padding: 5px 8px; background: #c0392b; color: white; border: none; border-radius: 3px; cursor: pointer;">
+              Delete
+            </button>
+          </td>
+        </tr>
+
+        <!-- صف منبثق أنيق لتفاصيل الـ 1:1 يظهر مباشرة أسفل الملعب المختار فقط -->
+        <tr *ngIf="selectedStadiumDetails?.id === s.id" style="background: #ecfdf5;">
+          <td colspan="7" style="padding: 12px 20px; border-top: 1px dashed #10b981;">
+            <div style="font-weight: bold; color: #065f46; margin-bottom: 6px;">
+              Specifications : {{ s.name }}
+            </div>
+            <div style="display: flex; gap: 25px; font-size: 13px; color: #047857;">
+              <div><strong>License:</strong> {{ s.details?.licenseNumber || 'LIC-2026-YEM' }}</div>
+              <div><strong>Capacity:</strong> {{ s.details?.capacity || 15000 }} Seats</div>
+              <div><strong>Grass Type:</strong> {{ s.details?.grassType || 'Natural' }}</div>
+              <div><strong>Sport:</strong> {{ getCategoryName(s.categoryId) }}</div>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+
+  <p *ngIf="stadiums.length === 0" style="text-align: center; color: #95a5a6; margin-top: 25px;">
+    No stadiums registered yet.
+  </p>
+</div>

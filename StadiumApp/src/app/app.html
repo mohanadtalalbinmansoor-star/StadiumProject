@@ -1,0 +1,17 @@
+<!-- شريط التنقل العلوي للمشروع كاملاً -->
+<header style="background: #1e293b; color: white; padding: 14px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-family: Segoe UI, Tahoma, sans-serif;">
+  <div style="font-size: 18px; font-weight: bold;">
+    🏟️ Stadium Booking System
+  </div>
+  
+  <nav style="display: flex; gap: 20px;">
+    <a [routerLink]="['/stadiums']" style="color: #cbd5e1; text-decoration: none; font-weight: 500; cursor: pointer;">Stadiums</a>
+    <a [routerLink]="['/about']" style="color: #cbd5e1; text-decoration: none; font-weight: 500; cursor: pointer;">About System</a>
+    <a [routerLink]="['/contact']" style="color: #cbd5e1; text-decoration: none; font-weight: 500; cursor: pointer;">Contact</a>
+  </nav>
+</header>
+
+<!-- الحاوية المخصصة لعرض الصفحات ديناميكياً بدون Refresh -->
+<main style="padding: 20px;">
+  <router-outlet></router-outlet>
+</main>

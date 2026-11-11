@@ -1,0 +1,12 @@
+# ASP.NET Core
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Angular / Node
+**/node_modules/
+**/.angular/
+**/dist/
+**/.vscode/
