@@ -1,9 +1,13 @@
-<div style="max-width: 980px; margin: 25px auto; font-family: Segoe UI, Tahoma, sans-serif; direction: ltr;">
+<div lang="en" dir="ltr" style="max-width: 1000px; margin: 25px auto; padding: 0 15px; font-family: 'Segoe UI', Tahoma, sans-serif; color: #2c3e50;">
   
+  <!-- العنوان وعداد الملاعب -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2 style="margin: 0; color: #2c3e50;">Stadiums & Reservations Management</h2>
+    <div>
+      <h2 style="margin: 0; color: #2c3e50;">Stadiums & Hourly Reservations</h2>
+      <span style="font-size: 13px; color: #7f8c8d;">Manage stadiums, booking policies, and hourly slots</span>
+    </div>
     <span style="background: #e8f4fd; color: #2980b9; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 14px;">
-      Total Stadiums: {{ stadiums.length }}
+      Total Stadiums: {{ stadiums.length | number:'1.0-0':'en-US' }}
     </span>
   </div>
 
@@ -11,56 +15,70 @@
   <div style="display: flex; gap: 8px; margin-bottom: 20px;">
     <input 
       type="text" 
-      placeholder="Search stadiums by name or city..." 
+      placeholder="Search by stadium name or city..." 
       [(ngModel)]="searchKeyword" 
-      style="flex: 1; padding: 9px; border: 1px solid #ccc; border-radius: 4px;" />
-    <button (click)="search()" style="padding: 9px 18px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      (keyup.enter)="search()"
+      style="flex: 1; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 5px;" />
+    <button (click)="search()" style="padding: 9px 18px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
       Search
     </button>
-    <button (click)="getStadiums()" style="padding: 9px 15px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    <button (click)="getStadiums()" style="padding: 9px 15px; background: #64748b; color: white; border: none; border-radius: 5px; cursor: pointer;">
       Show All
     </button>
   </div>
 
-  <!-- قسم إضافة وتعديل الملعب وسياسة الحجز (1:1) -->
-  <div style="background: #fdfdfd; padding: 20px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
-    <h3 style="margin-top: 0; color: #34495e; font-size: 16px;">
-      {{ isEditMode ? 'Edit Stadium' : 'Add New Stadium' }}
+  <!-- نموذج إضافة / تعديل ملعب -->
+  <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <h3 style="margin: 0 0 15px 0; color: #334155; font-size: 16px;">
+      {{ isEditMode ? 'Edit Stadium Information' : 'Add New Stadium' }}
     </h3>
 
-    <!-- الصف الأول: بيانات الملعب -->
-    <div style="display: grid; grid-template-columns: 2fr 2fr 1.5fr 1fr; gap: 10px; margin-bottom: 12px;">
-      <input type="text" placeholder="Stadium Name" [(ngModel)]="currentStadium.name" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
-      <input type="text" placeholder="Location / City" [(ngModel)]="currentStadium.location" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
-      
-      <select [(ngModel)]="currentStadium.categoryId" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
-        <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
-      </select>
+    <!-- الصف الأول: البيانات الأساسية مع تسميات واضحة -->
+    <div style="display: grid; grid-template-columns: 2fr 1.8fr 1.4fr 1.3fr; gap: 12px; margin-bottom: 15px;">
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Stadium Name</label>
+        <input type="text" placeholder="e.g. Al-Nujoom Arena" [(ngModel)]="currentStadium.name" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
+      </div>
 
-      <input type="number" placeholder="Price/hr" [(ngModel)]="currentStadium.pricePerHour" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">City / Location</label>
+        <input type="text" placeholder="e.g. Mukalla" [(ngModel)]="currentStadium.location" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Sport Category</label>
+        <select [(ngModel)]="currentStadium.categoryId" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Hourly Rate (YER / hr)</label>
+        <input type="number" min="0" placeholder="5000" [(ngModel)]="currentStadium.pricePerHour" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
+      </div>
     </div>
 
     <!-- الصف الثاني: سياسة الحجز (One-to-One) -->
-    <div *ngIf="currentStadium.bookingPolicy" style="background: #f8fafc; padding: 12px; border-radius: 4px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
-      <span style="display: block; font-size: 13px; font-weight: bold; color: #475569; margin-bottom: 8px;">
-        ⚙️ Stadium Booking Policy :
+    <div *ngIf="currentStadium.bookingPolicy" style="background: #f8fafc; padding: 12px 15px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
+      <span style="display: block; font-size: 12.5px; font-weight: bold; color: #334155; margin-bottom: 10px;">
+        Booking Policy Settings (One-to-One)
       </span>
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;">
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
         <div>
-          <label style="font-size: 11px; color: #64748b;">Open Time</label>
-          <input type="text" placeholder="16:00:00" [(ngModel)]="currentStadium.bookingPolicy.openingTime" style="width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px;" />
+          <label style="display: block; font-size: 11.5px; color: #64748b; margin-bottom: 3px;">Opening Time (24h)</label>
+          <input type="text" placeholder="16:00:00" [(ngModel)]="currentStadium.bookingPolicy.openingTime" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
         </div>
         <div>
-          <label style="font-size: 11px; color: #64748b;">Close Time</label>
-          <input type="text" placeholder="00:00:00" [(ngModel)]="currentStadium.bookingPolicy.closingTime" style="width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px;" />
+          <label style="display: block; font-size: 11.5px; color: #64748b; margin-bottom: 3px;">Closing Time (24h)</label>
+          <input type="text" placeholder="23:59:00" [(ngModel)]="currentStadium.bookingPolicy.closingTime" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
         </div>
         <div>
-          <label style="font-size: 11px; color: #64748b;">Slot (Mins)</label>
-          <input type="number" placeholder="60" [(ngModel)]="currentStadium.bookingPolicy.slotDurationMinutes" style="width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px;" />
+          <label style="display: block; font-size: 11.5px; color: #64748b; margin-bottom: 3px;">Slot Duration (Mins)</label>
+          <input type="number" min="30" step="30" [(ngModel)]="currentStadium.bookingPolicy.slotDurationMinutes" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
         </div>
         <div>
-          <label style="font-size: 11px; color: #64748b;">Cancel Deadline (Hrs)</label>
-          <input type="number" placeholder="24" [(ngModel)]="currentStadium.bookingPolicy.cancellationDeadlineHours" style="width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px;" />
+          <label style="display: block; font-size: 11.5px; color: #64748b; margin-bottom: 3px;">Cancel Before (Hours)</label>
+          <input type="number" min="1" [(ngModel)]="currentStadium.bookingPolicy.cancellationDeadlineHours" style="width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 4px;" />
         </div>
       </div>
     </div>
@@ -69,80 +87,85 @@
       <button 
         (click)="saveStadium()" 
         [disabled]="!currentStadium.name.trim()"
-        style="padding: 9px 22px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        style="padding: 9px 22px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
         {{ isEditMode ? 'Update Stadium' : 'Save Stadium' }}
       </button>
 
       <button 
         *ngIf="isEditMode" 
         (click)="cancelEdit()" 
-        style="padding: 9px 18px; background: #7f8c8d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        style="padding: 9px 18px; background: #7f8c8d; color: white; border: none; border-radius: 5px; cursor: pointer;">
         Cancel
       </button>
     </div>
   </div>
 
-  <!-- جدول الملاعب -->
-  <table border="1" cellpadding="9" cellspacing="0" style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; text-align: left;">
-    <thead style="background: #2c3e50; color: white;">
+  <!-- جدول عرض الملاعب -->
+  <table style="width: 100%; border-collapse: collapse; background: white; border: 1px solid #e2e8f0; text-align: left;">
+    <thead style="background: #2c3e50; color: white; font-size: 13.5px;">
       <tr>
-        <th style="width: 45px;">ID</th>
-        <th>Stadium</th>
-        <th>Category</th>
-        <th>Location</th>
-        <th>Price / Hour</th>
-        <th>Status</th>
-        <th style="width: 280px;">Actions</th>
+        <th style="padding: 11px; width: 45px;">ID</th>
+        <th style="padding: 11px;">Stadium Name</th>
+        <th style="padding: 11px;">Category</th>
+        <th style="padding: 11px;">Location</th>
+        <th style="padding: 11px;">Hourly Rate</th>
+        <th style="padding: 11px;">Status</th>
+        <th style="padding: 11px; width: 295px;">Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody style="font-size: 14px;">
       <ng-container *ngFor="let s of stadiums">
-        <tr>
-          <td>{{ s.id }}</td>
-          <td><strong>{{ s.name | uppercase }}</strong></td>
-          <td><span style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-size: 13px;">{{ getCategoryName(s.categoryId) }}</span></td>
-          <td>{{ s.location }}</td>
-          <td>{{ s.pricePerHour | currency:'YER':'symbol':'1.0-0' }}</td>
-          <td>
-            <span [ngStyle]="{'color': s.isAvailable ? '#27ae60' : '#e74c3c', 'font-weight': 'bold'}">
-              {{ s.isAvailable ? 'Active' : 'Maintenance' }}
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 10px;">{{ s.id | number:'1.0-0':'en-US' }}</td>
+          <td style="padding: 10px;"><strong>{{ s.name }}</strong></td>
+          <td style="padding: 10px;">
+            <span style="background: #f1f5f9; color: #334155; padding: 3px 8px; border-radius: 4px; font-size: 12.5px;">
+              {{ getCategoryName(s.categoryId) }}
             </span>
           </td>
-          <td>
-            <!-- زر الحجز (One-to-Many) -->
+          <td style="padding: 10px;">{{ s.location }}</td>
+          <td style="padding: 10px; font-weight: 600; color: #1e293b;">
+            {{ s.pricePerHour | number:'1.0-0':'en-US' }} YER <span style="font-weight: normal; font-size: 12px; color: #64748b;">/ hr</span>
+          </td>
+          <td style="padding: 10px;">
+            <span [ngStyle]="{'color': s.isAvailable ? '#16a34a' : '#dc2626', 'font-weight': 'bold', 'font-size': '13px'}">
+              {{ s.isAvailable ? 'Active' : 'Closed' }}
+            </span>
+          </td>
+          <td style="padding: 10px;">
             <button 
               (click)="openBookingModal(s)" 
               [disabled]="!s.isAvailable"
-              style="padding: 5px 8px; background: #8e44ad; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
+              [ngStyle]="{'opacity': s.isAvailable ? '1' : '0.5'}"
+              style="padding: 5px 10px; background: #8e44ad; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 4px; font-weight: 600;">
               Book
             </button>
-            <!-- زر السياسة (One-to-One) -->
-            <button (click)="togglePolicy(s)" style="padding: 5px 8px; background: #16a085; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
+            <button (click)="togglePolicy(s)" style="padding: 5px 9px; background: #16a085; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 4px;">
               Policy
             </button>
-            <button (click)="editStadium(s)" style="padding: 5px 8px; background: #2980b9; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
+            <button (click)="editStadium(s)" style="padding: 5px 9px; background: #2980b9; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 4px;">
               Edit
             </button>
-            <button (click)="toggleStatus(s.id)" style="padding: 5px 8px; background: #f39c12; color: white; border: none; border-radius: 3px; cursor: pointer; margin-right: 3px;">
-              Toggle
+            <button (click)="toggleStatus(s)" style="padding: 5px 9px; background: #f39c12; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 4px;">
+              Status
             </button>
-            <button (click)="deleteStadium(s.id)" style="padding: 5px 8px; background: #c0392b; color: white; border: none; border-radius: 3px; cursor: pointer;">
+            <button (click)="deleteStadium(s.id)" style="padding: 5px 9px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">
               Delete
             </button>
           </td>
         </tr>
 
-        <!-- عرض سياسة الحجز 1:1 تحت الملعب عند النقر -->
-        <tr *ngIf="selectedStadiumForPolicy?.id === s.id" style="background: #f0fdf4;">
-          <td colspan="7" style="padding: 12px 20px; border-top: 1px dashed #10b981;">
-            <div style="font-weight: bold; color: #166534; margin-bottom: 6px;">
-              📋 Booking Policy for {{ s.name }}:
+        <!-- تفاصيل سياسة الحجز (One-to-One) تظهر فور الضغط على Policy -->
+        <tr *ngIf="selectedStadiumForPolicy?.id === s.id" style="background: #f0fdf4; border-bottom: 1px solid #bbf7d0;">
+          <td colspan="7" style="padding: 12px 18px;">
+            <div style="font-weight: bold; color: #166534; font-size: 13px; margin-bottom: 6px;">
+              Booking Policy — {{ s.name }}
             </div>
-            <div style="display: flex; gap: 20px; font-size: 13px; color: #15803d;">
-              <div><strong>Hours:</strong> {{ s.bookingPolicy?.openingTime || '16:00' }} to {{ s.bookingPolicy?.closingTime || '00:00' }}</div>
-              <div><strong>Slot:</strong> {{ s.bookingPolicy?.slotDurationMinutes || 60 }} Mins</div>
-              <div><strong>Advance:</strong> Up to {{ s.bookingPolicy?.maxAdvanceBookingDays || 30 }} Days</div>
-              <div><strong>Cancellation:</strong> {{ s.bookingPolicy?.cancellationDeadlineHours || 24 }}h before</div>
+            <div style="display: flex; gap: 25px; flex-wrap: wrap; font-size: 13px; color: #15803d;">
+              <div><strong>Working Hours:</strong> {{ s.bookingPolicy?.openingTime || '16:00:00' }} - {{ s.bookingPolicy?.closingTime || '23:59:00' }}</div>
+              <div><strong>Standard Slot:</strong> {{ (s.bookingPolicy?.slotDurationMinutes || 60) | number:'1.0-0':'en-US' }} mins (1 Hour)</div>
+              <div><strong>Max Advance:</strong> {{ (s.bookingPolicy?.maxAdvanceBookingDays || 30) | number:'1.0-0':'en-US' }} days</div>
+              <div><strong>Free Cancellation:</strong> Up to {{ (s.bookingPolicy?.cancellationDeadlineHours || 24) | number:'1.0-0':'en-US' }} hours before</div>
             </div>
           </td>
         </tr>
@@ -150,51 +173,67 @@
     </tbody>
   </table>
 
-  <!-- نافذة الحجز المنبثقة (Modal) -->
-  <div *ngIf="selectedStadiumForBooking" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 25px; border-radius: 8px; width: 420px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-      <h3 style="margin-top: 0; color: #2c3e50;">New Booking: {{ selectedStadiumForBooking.name }}</h3>
-      <p style="font-size: 13px; color: #7f8c8d; margin-top: -8px;">Rate: {{ selectedStadiumForBooking.pricePerHour }} YER / hr</p>
+  <!-- نافذة حجز المواعيد بالساعة (تظهر فوراً عند الضغط على Book) -->
+  <div *ngIf="selectedStadiumForBooking" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.55); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; padding: 24px; border-radius: 10px; width: 430px; max-width: 92%; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 14px;">
+        <div>
+          <h3 style="margin: 0; color: #1e293b; font-size: 18px;">Book Stadium: {{ selectedStadiumForBooking.name }}</h3>
+          <span style="font-size: 12.5px; color: #64748b;">
+            Hourly Rate: <strong>{{ selectedStadiumForBooking.pricePerHour | number:'1.0-0':'en-US' }} YER / Hour</strong>
+          </span>
+        </div>
+        <button (click)="closeBookingModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer;">&times;</button>
+      </div>
 
-      <div *ngIf="bookingErrorMessage" style="background: #fee2e2; color: #b91c1c; padding: 8px; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
+      <div *ngIf="bookingErrorMessage" style="background: #fee2e2; color: #b91c1c; padding: 9px 12px; border-radius: 5px; font-size: 13px; margin-bottom: 12px;">
         {{ bookingErrorMessage }}
       </div>
-      <div *ngIf="bookingMessage" style="background: #dcfce7; color: #15803d; padding: 8px; border-radius: 4px; font-size: 13px; margin-bottom: 12px;">
+      <div *ngIf="bookingMessage" style="background: #dcfce7; color: #15803d; padding: 9px 12px; border-radius: 5px; font-size: 13px; margin-bottom: 12px; font-weight: 600;">
         {{ bookingMessage }}
       </div>
 
-      <div style="margin-bottom: 10px;">
-        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Customer Name</label>
-        <input type="text" [(ngModel)]="newBooking.customerName" placeholder="e.g. Ahmed Ali" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <div style="margin-bottom: 11px;">
+        <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: #334155;">Customer Full Name</label>
+        <input type="text" [(ngModel)]="newBooking.customerName" placeholder="e.g. Ahmed Salem" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 5px;" />
       </div>
 
-      <div style="margin-bottom: 10px;">
-        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Phone Number</label>
-        <input type="text" [(ngModel)]="newBooking.customerPhone" placeholder="e.g. 770000000" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <div style="margin-bottom: 11px;">
+        <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: #334155;">Phone Number</label>
+        <input type="text" [(ngModel)]="newBooking.customerPhone" placeholder="e.g. 770123456" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 5px;" />
       </div>
 
-      <div style="margin-bottom: 10px;">
-        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Start Time</label>
-        <input type="datetime-local" [(ngModel)]="newBooking.startTime" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: #334155;">Start Date & Time</label>
+          <input type="datetime-local" [(ngModel)]="newBooking.startTime" (change)="cdr.detectChanges()" style="width: 100%; box-sizing: border-box; padding: 7px; border: 1px solid #cbd5e1; border-radius: 5px;" />
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 4px; color: #334155;">End Date & Time</label>
+          <input type="datetime-local" [(ngModel)]="newBooking.endTime" (change)="cdr.detectChanges()" style="width: 100%; box-sizing: border-box; padding: 7px; border: 1px solid #cbd5e1; border-radius: 5px;" />
+        </div>
       </div>
 
-      <div style="margin-bottom: 18px;">
-        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">End Time</label>
-        <input type="datetime-local" [(ngModel)]="newBooking.endTime" style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+      <!-- ملخص تلقائي للساعات والسعر الإجمالي -->
+      <div *ngIf="getCalculatedHours() > 0" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; margin-bottom: 15px; display: flex; justify-content: space-between; font-size: 13px;">
+        <span>Duration: <strong>{{ getCalculatedHours() | number:'1.0-2':'en-US' }} Hour(s)</strong></span>
+        <span style="color: #8e44ad;">Estimated Total: <strong>{{ getEstimatedTotal() | number:'1.0-0':'en-US' }} YER</strong></span>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 8px;">
-        <button (click)="closeBookingModal()" style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        <button (click)="closeBookingModal()" style="padding: 8px 16px; background: #94a3b8; color: white; border: none; border-radius: 5px; cursor: pointer;">
           Cancel
         </button>
-        <button (click)="submitBooking()" style="padding: 8px 20px; background: #8e44ad; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        <button (click)="submitBooking()" style="padding: 8px 20px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
           Confirm Booking
         </button>
       </div>
     </div>
   </div>
 
-  <p *ngIf="stadiums.length === 0" style="text-align: center; color: #95a5a6; margin-top: 25px;">
-    No stadiums registered yet.
+  <p *ngIf="stadiums.length === 0" style="text-align: center; color: #94a3b8; margin-top: 25px;">
+    No stadiums registered yet. Add a stadium above to get started.
   </p>
 </div>

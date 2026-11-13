@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using StadiumReservationApi.Models;
+using StadiumReservationApi.DTOs; 
 using StadiumReservationApi.Services;
 
 namespace StadiumReservationApi.Controllers
@@ -44,29 +45,55 @@ namespace StadiumReservationApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult Add([FromBody] Stadium stadium)
+        public IActionResult Add([FromBody] StadiumDto dto)
         {
+            // تحويل البيانات من StadiumDto إلى Stadium Model
+            var stadium = new Stadium
+            {
+                Name = dto.Name,
+                Location = dto.Location,
+                PricePerHour = dto.PricePerHour,
+                IsAvailable = dto.IsAvailable,
+                CategoryId = dto.CategoryId,
+                BookingPolicy = dto.BookingPolicy != null ? new StadiumBookingPolicy
+                {
+                    OpeningTime = dto.BookingPolicy.OpeningTime,
+                    ClosingTime = dto.BookingPolicy.ClosingTime,
+                    SlotDurationMinutes = dto.BookingPolicy.SlotDurationMinutes,
+                    MaxAdvanceBookingDays = dto.BookingPolicy.MaxAdvanceBookingDays,
+                    CancellationDeadlineHours = dto.BookingPolicy.CancellationDeadlineHours
+                } : null
+            };
+
             _service.AddStadium(stadium);
-            return Ok(new { Message = "Stadium added successfully." });
+            return Ok(stadium);
         }
-
         // PUT: api/stadiums
-        [HttpPut]
-        public ActionResult Update([FromBody] Stadium stadium)
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] StadiumDto dto)
         {
+            // تحويل البيانات من StadiumDto إلى Stadium Model مع تمرير الـ id
+            var stadium = new Stadium
+            {
+                Id = id,
+                Name = dto.Name,
+                Location = dto.Location,
+                PricePerHour = dto.PricePerHour,
+                IsAvailable = dto.IsAvailable,
+                CategoryId = dto.CategoryId,
+                BookingPolicy = dto.BookingPolicy != null ? new StadiumBookingPolicy
+                {
+                    OpeningTime = dto.BookingPolicy.OpeningTime,
+                    ClosingTime = dto.BookingPolicy.ClosingTime,
+                    SlotDurationMinutes = dto.BookingPolicy.SlotDurationMinutes,
+                    MaxAdvanceBookingDays = dto.BookingPolicy.MaxAdvanceBookingDays,
+                    CancellationDeadlineHours = dto.BookingPolicy.CancellationDeadlineHours
+                } : null
+            };
+
             _service.UpdateStadium(stadium);
-            return Ok(new { Message = "Stadium updated successfully." });
+            return Ok(stadium);
         }
-
-        [HttpPut("{id:int:min(1)}/toggle-status")]
-        public ActionResult ToggleStatus([FromRoute] int id)
-        {
-            var existing = _service.GetStadiumById(id);
-            if (existing == null) return NotFound();
-            _service.ToggleAvailability(id);
-            return Ok(new { Message = "Stadium availability toggled." });
-        }
-
         [HttpDelete("{id:int:min(1)}")]
         public ActionResult Delete([FromRoute] int id)
         {

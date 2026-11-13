@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StadiumReservationApi.Data;
+using StadiumReservationApi.DTOs; 
 using StadiumReservationApi.Models;
 
 namespace StadiumReservationApi.Controllers
@@ -27,38 +28,48 @@ namespace StadiumReservationApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBooking([FromBody] Booking booking)
+        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto dto)
         {
             var stadium = await _context.Stadiums
-                .Include(s => s.BookingPolicy)
-                .FirstOrDefaultAsync(s => s.Id == booking.StadiumId);
+                .FirstOrDefaultAsync(s => s.Id == dto.StadiumId);
 
             if (stadium == null) return NotFound("الملعب غير موجود");
             if (!stadium.IsAvailable) return BadRequest("الملعب مغلق حالياً للصيانة");
 
-            // 1. التحقق من منع تعارض الحجوزات (Conflict Check)
+            // 1. فحص تعارض الأوقات
             bool hasConflict = await _context.Bookings.AnyAsync(b =>
-                b.StadiumId == booking.StadiumId &&
+                b.StadiumId == dto.StadiumId &&
                 b.Status == "Confirmed" &&
-                ((booking.StartTime >= b.StartTime && booking.StartTime < b.EndTime) ||
-                 (booking.EndTime > b.StartTime && booking.EndTime <= b.EndTime) ||
-                 (booking.StartTime <= b.StartTime && booking.EndTime >= b.EndTime)));
+                ((dto.StartTime >= b.StartTime && dto.StartTime < b.EndTime) ||
+                 (dto.EndTime > b.StartTime && dto.EndTime <= b.EndTime) ||
+                 (dto.StartTime <= b.StartTime && dto.EndTime >= b.EndTime)));
 
             if (hasConflict)
             {
                 return BadRequest("عذراً، هذا التوقيت محجوز مسبقاً! يرجى اختيار موعد آخر.");
             }
 
-            // 2. حساب السعر الإجمالي برمجياً (مدة الحجز × سعر الساعة للملعب)
-            var totalHours = (decimal)(booking.EndTime - booking.StartTime).TotalHours;
+            // 2. حساب السعر الإجمالي من الباك إند
+            var totalHours = (decimal)(dto.EndTime - dto.StartTime).TotalHours;
             if (totalHours <= 0) totalHours = 1;
-            booking.TotalPrice = totalHours * stadium.PricePerHour;
-            booking.Status = "Confirmed";
+
+            // 3. التحويل (Mapping) من DTO إلى Model قاعدة البيانات
+            var booking = new Booking
+            {
+                CustomerName = dto.CustomerName,
+                CustomerPhone = dto.CustomerPhone,
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime,
+                StadiumId = dto.StadiumId,
+                TotalPrice = totalHours * stadium.PricePerHour,
+                Status = "Confirmed"
+            };
 
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
 
             return Ok(booking);
+
         }
     }
 }
